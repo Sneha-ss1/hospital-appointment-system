@@ -1,0 +1,124 @@
+{
+  "info": {
+    "name": "Smart Hospital Appointment System",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080" }
+  ],
+  "item": [
+    {
+      "name": "1. Create Specialty",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\"name\":\"Cardiology\"}" },
+        "url": "{{baseUrl}}/api/specialties"
+      }
+    },
+    {
+      "name": "2. List Specialties",
+      "request": { "method": "GET", "url": "{{baseUrl}}/api/specialties" }
+    },
+    {
+      "name": "3. Register Doctor",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\"name\":\"Dr. Rao\",\"email\":\"rao@hospital.com\",\"specialtyId\":1}" },
+        "url": "{{baseUrl}}/api/doctors"
+      }
+    },
+    {
+      "name": "4. List Doctors",
+      "request": { "method": "GET", "url": "{{baseUrl}}/api/doctors" }
+    },
+    {
+      "name": "5. Register Patient A",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\"name\":\"Amit Sharma\",\"email\":\"amit@example.com\",\"phone\":\"9876543210\"}" },
+        "url": "{{baseUrl}}/api/patients"
+      }
+    },
+    {
+      "name": "6. Register Patient B",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\"name\":\"Priya Nair\",\"email\":\"priya@example.com\",\"phone\":\"9876500000\"}" },
+        "url": "{{baseUrl}}/api/patients"
+      }
+    },
+    {
+      "name": "7. Create Time Slot",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\"doctorId\":1,\"date\":\"2026-07-10\",\"startTime\":\"10:00:00\",\"endTime\":\"10:30:00\"}" },
+        "url": "{{baseUrl}}/api/timeslots"
+      }
+    },
+    {
+      "name": "8. Get Available Slots",
+      "request": { "method": "GET", "url": "{{baseUrl}}/api/doctors/1/slots?date=2026-07-10" }
+    },
+    {
+      "name": "9. Book Appointment (Patient A - should succeed, 201)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\"patientId\":1,\"timeSlotId\":1}" },
+        "url": "{{baseUrl}}/api/appointments/book"
+      }
+    },
+    {
+      "name": "10. Book SAME Slot (Patient B - should FAIL, 409 Conflict)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\"patientId\":2,\"timeSlotId\":1}" },
+        "url": "{{baseUrl}}/api/appointments/book"
+      }
+    },
+    {
+      "name": "11. Create Second Time Slot (for reschedule demo)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\"doctorId\":1,\"date\":\"2026-07-10\",\"startTime\":\"11:00:00\",\"endTime\":\"11:30:00\"}" },
+        "url": "{{baseUrl}}/api/timeslots"
+      }
+    },
+    {
+      "name": "12. Reschedule Appointment 1 to Slot 2",
+      "request": {
+        "method": "PUT",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\"newTimeSlotId\":2}" },
+        "url": "{{baseUrl}}/api/appointments/1/reschedule"
+      }
+    },
+    {
+      "name": "13. Complete Appointment 1",
+      "request": { "method": "PUT", "url": "{{baseUrl}}/api/appointments/1/complete" }
+    },
+    {
+      "name": "14. Get Patient A's Appointment History",
+      "request": { "method": "GET", "url": "{{baseUrl}}/api/appointments/patient/1" }
+    },
+    {
+      "name": "15. Get Doctor's Appointments for a Date (queue view)",
+      "request": { "method": "GET", "url": "{{baseUrl}}/api/appointments/doctor/1?date=2026-07-10" }
+    },
+    {
+      "name": "16. Cascading Cancel - Doctor's Whole Day",
+      "request": { "method": "PUT", "url": "{{baseUrl}}/api/appointments/doctors/1/cancel-day?date=2026-07-10" }
+    },
+    {
+      "name": "17. Cancel Single Appointment (state validation demo, 400 if already cancelled)",
+      "request": { "method": "PUT", "url": "{{baseUrl}}/api/appointments/1/cancel" }
+    }
+  ]
+}
