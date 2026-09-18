@@ -151,55 +151,8 @@ instead of curl.
 
 ---
 
-## 6. Interview Talking Points (read this before your interview)
 
-**"Walk me through your architecture."**
-Layered: Controller (HTTP in/out) → Service (business logic, `@Transactional`
-boundaries) → Repository (Spring Data JPA, talks to MySQL) → Entity (JPA-mapped
-tables). DTOs sit between Controller and the outside world so raw entities
-(and their lazy-loaded relationships) never leak into the API response.
-
-**"How did you prevent double booking?"**
-Two layers: (1) application-level — `findByIdForUpdate` takes a pessimistic
-row lock (`SELECT ... FOR UPDATE`) on the TimeSlot inside a `@Transactional`
-method, so a second concurrent request blocks until the first finishes; (2)
-database-level — the `time_slot_id` column on Appointment has a `UNIQUE`
-constraint, so even if application logic were bypassed, MySQL itself refuses
-a duplicate booking.
-
-**"How does queue number assignment work?"**
-At booking time, the service counts existing `BOOKED` appointments for that
-doctor on that date and assigns `count + 1`. Simple counter approach — good
-enough for one clinic's daily volume; at higher concurrency you'd want a
-DB sequence or the same pessimistic-lock pattern used for slot booking to
-avoid two bookings computing the same queue number in a race.
-
-**"What is cascading cancellation and why did you need custom exceptions?"**
-If a doctor cancels an entire day, every appointment tied to that doctor+date
-must be cancelled and every slot freed — done inside one `@Transactional`
-method so it's all-or-nothing. Custom exceptions (`SlotAlreadyBookedException`,
-`InvalidAppointmentStateException`, `ResourceNotFoundException`) let the
-service layer express *why* something failed, and a single
-`@RestControllerAdvice` (`GlobalExceptionHandler`) turns each one into the
-right HTTP status and a consistent JSON error shape — instead of scattering
-try/catch blocks across every controller method.
-
-**"Why `mappedBy` on one side of a relationship?"**
-It marks the *inverse* side of a bidirectional relationship — tells Hibernate
-"don't create a foreign key column here, the other entity already owns it."
-E.g. `Specialty.doctors` is `mappedBy = "specialty"` because `Doctor` holds
-the actual `specialty_id` foreign key column via `@JoinColumn`.
-
-**"What would you improve for production?"**
-- Swap `ddl-auto=update` for Flyway/Liquibase migrations
-- Add Spring Security + JWT for real role-based access (Patient/Doctor/Admin)
-- Add pagination to list endpoints
-- Move queue numbering to a DB sequence for stronger concurrency guarantees
-- Add integration tests with Testcontainers (spin up a real MySQL in Docker for tests)
-
----
-
-## 7. Project Structure
+## 6. Project Structure
 
 ```
 src/main/java/com/hospital/appointment/
